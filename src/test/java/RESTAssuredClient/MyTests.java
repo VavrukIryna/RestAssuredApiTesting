@@ -3,7 +3,10 @@ package RESTAssuredClient;
 import RESTAssuredClient.RESTAssuredClient.DataProviderSource;
 import RESTAssuredClient.RESTAssuredClient.Employee;
 import RESTAssuredClient.RESTAssuredClient.ClientController;
+import RESTAssuredClient.RESTAssuredClient.User;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.gson.Gson;
 import io.restassured.RestAssured;
 import io.restassured.http.Method;
@@ -16,6 +19,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 
 public class MyTests {
@@ -219,11 +223,32 @@ public class MyTests {
 //****1*****StatusCode
         int responseCode = response.getStatusCode();
         System.out.println("StatusCode is => " + responseCode);
-        Assert.assertEquals(responseCode, 201, "Status code is correct");
+        Assert.assertEquals(responseCode, 200, "Status code is correct");
         System.out.println("Response body: " + response.body().asString());
        // String successCode = response.jsonPath().get("SuccessCode");
        // Assert.assertEquals("Correct Success code was returned", successCode, "OPERATION_SUCCESS");
     }
+
+    @Test(dataProvider = "createUser", dataProviderClass = DataProviderSource.class)
+    public void POSTRequestForUserPetstoreWithDataProvider(User user){
+        RestAssured.baseURI = "https://petstore.swagger.io/v2";
+        RequestSpecification httpRequest = RestAssured.given();
+        httpRequest.body(user);
+        httpRequest.header("Content-type","application/json");
+        Response response = httpRequest.request(Method.POST,"/user");
+
+        int responseStatusCode = response.getStatusCode();
+        Assert.assertEquals(responseStatusCode,200,"User was created");
+        System.out.println("content-type=>"+response.getContentType());
+        Assert.assertEquals(response.getContentType(),"application/json","content type is application/json");
+        System.out.println("headers =>"+response.getHeaders());
+        Assert.assertEquals(response.getHeader("Server"),"Jetty(9.2.9.v20150224)","server is jetty");
+        Assert.assertEquals(response.getHeader("Content-Type"),"application/json","content type is correct");
+        System.out.println("status line =>"+response.getStatusLine());
+        System.out.println("time=>"+response.getTime());
+    }
+
+
 
     @Test
     public void PostRequestForEmployee(){
@@ -238,10 +263,39 @@ public class MyTests {
         httpRequest.body(requestParam.toJSONString());
         Response response = httpRequest.request(Method.POST);
         int statusCode = response.getStatusCode();
-        Assert.assertEquals(statusCode, "201");
+        Assert.assertEquals(statusCode, "200");
         System.out.println("The status code recieved: " + statusCode);
         System.out.println("Response body: " + response.body().asString());
     }
+
+    @Test(dataProvider = "createListOfUsers",dataProviderClass = DataProviderSource.class)
+    public void POSTListOfUsersPetstore(Object[] userAyyalList){
+        RestAssured.baseURI = "https://petstore.swagger.io/v2";
+        RequestSpecification httpRequest = RestAssured.given();
+        httpRequest.header("Content-Type", "application/json");
+
+        //convert ArrayList<User> to JSON using JACKSON
+
+
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        try {
+            String jsonString = ow.writeValueAsString(userAyyalList);
+
+
+
+        httpRequest.body(jsonString);
+        Response response = httpRequest.request(Method.POST,"/user/createWithList");
+            System.out.println(response.getStatusLine());
+            System.out.println(response.getHeaders());
+
+        Assert.assertEquals(response.getStatusCode(), 200,"Status Code is 200");
+        Assert.assertEquals(response.getHeader("Content-Type"), "application/json", "Content type is json");
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
 
 }
