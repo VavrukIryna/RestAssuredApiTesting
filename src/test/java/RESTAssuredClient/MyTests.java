@@ -14,15 +14,19 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.restassured.response.ResponseBody;
 import io.restassured.specification.RequestSpecification;
+import org.apache.log4j.PropertyConfigurator;
 import org.json.simple.JSONObject;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.testng.log4testng.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.UUID;
 
 
 public class MyTests {
+    static Logger logger = Logger.getLogger(MyTests.class);
     static final String URL_EMPLOYEES = "http://localhost:8080/employees";
     static final String URL_CREATE_EMPLOYEE = "http://localhost:8080/employee";
     static final String URL_UPDATE_EMPLOYEE = "http://localhost:8080/employee";
@@ -30,6 +34,11 @@ public class MyTests {
 
     @Test(dataProvider = "getAllEmployeeNumber",dataProviderClass=DataProviderSource.class)
     public void CheckCorrectEmployeeDetails(String empNo) {
+        //PropertiesConfigurator is used to configure logger from properties file
+        PropertyConfigurator.configure("log4j.properties");
+
+        //Log in console in and log file
+        logger.debug("Log4j appender configuration is successful !!");
         // Specify the base URL to the RESTful web service
         RestAssured.baseURI = URL_CREATE_EMPLOYEE;
 
@@ -295,7 +304,37 @@ public class MyTests {
         }
     }
 
+    @Test
+    public void POSTMedcCbotMessage() {
 
+        UUID uuid = UUID.randomUUID();
+        RestAssured.baseURI = "http://localhost:8080/message";
+        RequestSpecification httpRequest = RestAssured.given();
+
+// JSONObject is a class that represents a Simple JSON.
+// We can add Key - Value pairs using the put method
+        JSONObject requestParam = new JSONObject();
+        requestParam.put("message","new acc provider");
+        requestParam.put("stage", "skill");
+
+
+        // Add a header stating the Request body is a JSON
+        httpRequest.header("Content-Type", "application/json");
+
+// Add the Json to the body of the request
+        httpRequest.body(requestParam.toJSONString());
+
+// Post the request and check the response
+        Response response = httpRequest.post();
+
+//****1*****StatusCode
+        int responseCode = response.getStatusCode();
+        System.out.println("StatusCode is => " + responseCode);
+      //  Assert.assertEquals(responseCode, 200, "Status code is correct");
+        System.out.println("Response body: " + response.body().asString());
+        // String successCode = response.jsonPath().get("SuccessCode");
+        // Assert.assertEquals("Correct Success code was returned", successCode, "OPERATION_SUCCESS");
+    }
 
 
 }
