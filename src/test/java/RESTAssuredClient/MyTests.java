@@ -16,17 +16,20 @@ import io.restassured.response.ResponseBody;
 import io.restassured.specification.RequestSpecification;
 import org.apache.log4j.PropertyConfigurator;
 import org.json.simple.JSONObject;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import org.testng.log4testng.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class MyTests {
-    static Logger logger = Logger.getLogger(MyTests.class);
+   // private static final java.util.logging.Logger LOGGER = Logger.getLogger( App.class.getName() );
     static final String URL_EMPLOYEES = "http://localhost:8080/employees";
     static final String URL_CREATE_EMPLOYEE = "http://localhost:8080/employee";
     static final String URL_UPDATE_EMPLOYEE = "http://localhost:8080/employee";
@@ -35,10 +38,11 @@ public class MyTests {
     @Test(dataProvider = "getAllEmployeeNumber",dataProviderClass=DataProviderSource.class)
     public void CheckCorrectEmployeeDetails(String empNo) {
         //PropertiesConfigurator is used to configure logger from properties file
-        PropertyConfigurator.configure("log4j.properties");
+       // PropertyConfigurator.configure("log4j.properties");
 
         //Log in console in and log file
-        logger.debug("Log4j appender configuration is successful !!");
+       // logger.info("Log4j appender configuration is successful !!");
+      //  LOGGER.log(Level.WARNING, "Auth failed!", ex);
         // Specify the base URL to the RESTful web service
         RestAssured.baseURI = URL_CREATE_EMPLOYEE;
 
@@ -59,9 +63,10 @@ public class MyTests {
         // we have recieved from the server
 
         //check response
-        String responseBody = response.getBody().asString();
-        System.out.println("Response Body is =>  " + responseBody);
-
+        if (response.getBody() != null) {
+            String responseBody = response.getBody().asString();
+            System.out.println("Response Body is =>  " + responseBody);
+        }
 //****1*****StatusCode
         int responseCode = response.getStatusCode();
         System.out.println("StatusCode is => " + responseCode);
@@ -78,24 +83,28 @@ public class MyTests {
 
         // Reader header of a give name. In this line we will get
         // Header named Content-Type
-        String contentType = response.header("Content-Type");
-        System.out.println("Content-Type value: " + contentType);
-        Assert.assertEquals(contentType /* actual value */, "application/json;charset=UTF-8" /* expected value */);
 
+        if (response.header("Content-Type") != null) {
+            String contentType = response.header("Content-Type");
+            System.out.println("Content-Type value: " + contentType);
+            Assert.assertEquals(contentType /* actual value */, "application/json;charset=UTF-8" /* expected value */);
+        }
 
         // Reader header of a give name. In this line we will get
         // Header named Server
-        String serverType = response.header("Server");
-        System.out.println("Server value: " + serverType);
-        //  Assert.assertEquals(serverType /* actual value */, "nginx/1.12.1" /* expected value */);
-
+        if (response.header("Server") != null) {
+            String serverType = response.header("Server");
+            System.out.println("Server value: " + serverType);
+            Assert.assertEquals(serverType /* actual value */, "nginx/1.12.1" /* expected value */);
+        }
 
         // Reader header of a give name. In this line we will get
         // Header named Content-Encoding
-        String acceptLanguage = response.header("Content-Encoding");
-        System.out.println("Content-Encoding: " + acceptLanguage);
-        // Assert.assertEquals(contentEncoding /* actual value */, "gzip" /* expected value */);
-
+        if (response.header("Content-Encoding") != null) {
+            String acceptLanguage = response.header("Content-Encoding");
+            System.out.println("Content-Encoding: " + acceptLanguage);
+            Assert.assertEquals(acceptLanguage /* actual value */, "gzip" /* expected value */);
+        }
     }
 
     @Test
@@ -256,8 +265,29 @@ public class MyTests {
         System.out.println("status line =>"+response.getStatusLine());
         System.out.println("time=>"+response.getTime());
     }
+  /*  @Test(dataProvider = "readDataFromCsv", dataProviderClass = DataProviderSource.class)
+    public void POSTRequestForUserPetstoreWithDataProviderFromCsv(Iterator<Object[]> iterator){
+        RestAssured.baseURI = "https://petstore.swagger.io/v2";
+        RequestSpecification httpRequest = RestAssured.given();
+        User user
+        while iterator.hasNext(){
+        User user = new User(iterator.);}
 
+        httpRequest.body(user);
+        httpRequest.header("Content-type","application/json");
+        Response response = httpRequest.request(Method.POST,"/user");
 
+        int responseStatusCode = response.getStatusCode();
+        Assert.assertEquals(responseStatusCode,200,"User was created");
+        System.out.println("content-type=>"+response.getContentType());
+        Assert.assertEquals(response.getContentType(),"application/json","content type is application/json");
+        System.out.println("headers =>"+response.getHeaders());
+        Assert.assertEquals(response.getHeader("Server"),"Jetty(9.2.9.v20150224)","server is jetty");
+        Assert.assertEquals(response.getHeader("Content-Type"),"application/json","content type is correct");
+        System.out.println("status line =>"+response.getStatusLine());
+        System.out.println("time=>"+response.getTime());
+    }*/
+/*
 
     @Test
     public void PostRequestForEmployee(){
@@ -276,7 +306,7 @@ public class MyTests {
         System.out.println("The status code recieved: " + statusCode);
         System.out.println("Response body: " + response.body().asString());
     }
-
+*/
     @Test(dataProvider = "createListOfUsers",dataProviderClass = DataProviderSource.class)
     public void POSTListOfUsersPetstore(Object[] userAyyalList){
         RestAssured.baseURI = "https://petstore.swagger.io/v2";

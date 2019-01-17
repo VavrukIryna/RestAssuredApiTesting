@@ -2,7 +2,13 @@ package RESTAssuredClient.RESTAssuredClient;
 
 import org.testng.annotations.DataProvider;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class DataProviderSource {
     @DataProvider(name = "getAllEmployeeNumber")
@@ -44,6 +50,23 @@ public class DataProviderSource {
         Object[] objArray = userArrayList.toArray();
 
         return objArray;
+    }
+
+    @DataProvider(name = "readDataFromCsv")
+    public static Iterator<Object []> createUserFromCsvFile( ) throws IOException {
+        List<Object []> testCases = new ArrayList<>();
+        String[] data= null;
+        String line = "";
+        String cvsSplitBy = ",";
+        String csvFile = "C:/Users/Iryna_Vavruk/JAVAPROJECTS/RESTAssuredClient/sample1.csv";
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+            while ((line = br.readLine()) != null) {
+                // use comma as separator
+                data = line.split(cvsSplitBy);
+                testCases.add(data);
+            }
+        }
+        return testCases.iterator();
     }
 
 }
