@@ -7,6 +7,7 @@ import RESTAssuredClient.RESTAssuredClient.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.gson.Gson;
 import io.restassured.RestAssured;
 import io.restassured.http.Method;
@@ -27,22 +28,24 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+
 
 public class MyTests {
-   // private static final java.util.logging.Logger LOGGER = Logger.getLogger( App.class.getName() );
+    // private static final java.util.logging.Logger LOGGER = Logger.getLogger( App.class.getName() );
     static final String URL_EMPLOYEES = "http://localhost:8080/employees";
     static final String URL_CREATE_EMPLOYEE = "http://localhost:8080/employee";
     static final String URL_UPDATE_EMPLOYEE = "http://localhost:8080/employee";
     static final String URL_EMPLOYEE_PREFIX = "http://localhost:8080/employee";
 
-    @Test(dataProvider = "getAllEmployeeNumber",dataProviderClass=DataProviderSource.class)
+    @Test(dataProvider = "getAllEmployeeNumber", dataProviderClass = DataProviderSource.class)
     public void CheckCorrectEmployeeDetails(String empNo) {
         //PropertiesConfigurator is used to configure logger from properties file
-       // PropertyConfigurator.configure("log4j.properties");
+        // PropertyConfigurator.configure("log4j.properties");
 
         //Log in console in and log file
-       // logger.info("Log4j appender configuration is successful !!");
-      //  LOGGER.log(Level.WARNING, "Auth failed!", ex);
+        // logger.info("Log4j appender configuration is successful !!");
+        //  LOGGER.log(Level.WARNING, "Auth failed!", ex);
         // Specify the base URL to the RESTful web service
         RestAssured.baseURI = URL_CREATE_EMPLOYEE;
 
@@ -54,9 +57,7 @@ public class MyTests {
         // Make a request to the server by specifying the method Type and the method URL.
         // This will return the Response from the server. Store the response in a variable.
         //Response response = httpRequest.request(Method.GET, "/E01");
-        Response response = httpRequest.get("/"+empNo);
-
-
+        Response response = httpRequest.get("/" + empNo);
 
 
         // Now let us print the body of the message to see what response
@@ -130,11 +131,11 @@ public class MyTests {
 
     }
 
-    @Test(dataProvider = "getAllEmployeeName",dataProviderClass=DataProviderSource.class)
+    @Test(dataProvider = "getAllEmployeeName", dataProviderClass = DataProviderSource.class)
     public void getEmployeeBodyAndCheck(String empNo, String empName) {
         RestAssured.baseURI = URL_CREATE_EMPLOYEE;
         RequestSpecification httpRequest = RestAssured.given();
-        Response response = httpRequest.request(Method.GET, "/"+empNo);
+        Response response = httpRequest.request(Method.GET, "/" + empNo);
         // Retrieve the body of the Response
         ResponseBody body = response.getBody();
 
@@ -148,11 +149,11 @@ public class MyTests {
         Assert.assertTrue(bodyAsString.toLowerCase().contains(empName.toLowerCase()), "Response body contains Ira");
     }
 
-    @Test(dataProvider = "getAllEmployeeName",dataProviderClass=DataProviderSource.class)
+    @Test(dataProvider = "getAllEmployeeName", dataProviderClass = DataProviderSource.class)
     public void checkTheEmployeeNameByJsonPathEvaluator(String empNo, String actualempName) {
         RestAssured.baseURI = URL_CREATE_EMPLOYEE;
         RequestSpecification httpRequest = RestAssured.given();
-        Response response = httpRequest.request(Method.GET, "/"+empNo);
+        Response response = httpRequest.request(Method.GET, "/" + empNo);
         // First get the JsonPath object instance from the Response interface
         JsonPath jsonPathEvaluator = response.jsonPath();
 
@@ -243,50 +244,51 @@ public class MyTests {
         System.out.println("StatusCode is => " + responseCode);
         Assert.assertEquals(responseCode, 200, "Status code is correct");
         System.out.println("Response body: " + response.body().asString());
-       // String successCode = response.jsonPath().get("SuccessCode");
-       // Assert.assertEquals("Correct Success code was returned", successCode, "OPERATION_SUCCESS");
+        // String successCode = response.jsonPath().get("SuccessCode");
+        // Assert.assertEquals("Correct Success code was returned", successCode, "OPERATION_SUCCESS");
     }
 
     @Test(dataProvider = "createUser", dataProviderClass = DataProviderSource.class)
-    public void POSTRequestForUserPetstoreWithDataProvider(User user){
+    public void POSTRequestForUserPetstoreWithDataProvider(User user) {
         RestAssured.baseURI = "https://petstore.swagger.io/v2";
         RequestSpecification httpRequest = RestAssured.given();
         httpRequest.body(user);
-        httpRequest.header("Content-type","application/json");
-        Response response = httpRequest.request(Method.POST,"/user");
+        httpRequest.header("Content-type", "application/json");
+        Response response = httpRequest.request(Method.POST, "/user");
 
         int responseStatusCode = response.getStatusCode();
-        Assert.assertEquals(responseStatusCode,200,"User was created");
-        System.out.println("content-type=>"+response.getContentType());
-        Assert.assertEquals(response.getContentType(),"application/json","content type is application/json");
-        System.out.println("headers =>"+response.getHeaders());
-        Assert.assertEquals(response.getHeader("Server"),"Jetty(9.2.9.v20150224)","server is jetty");
-        Assert.assertEquals(response.getHeader("Content-Type"),"application/json","content type is correct");
-        System.out.println("status line =>"+response.getStatusLine());
-        System.out.println("time=>"+response.getTime());
+        Assert.assertEquals(responseStatusCode, 200, "User was created");
+        System.out.println("content-type=>" + response.getContentType());
+        Assert.assertEquals(response.getContentType(), "application/json", "content type is application/json");
+        System.out.println("headers =>" + response.getHeaders());
+        Assert.assertEquals(response.getHeader("Server"), "Jetty(9.2.9.v20150224)", "server is jetty");
+        Assert.assertEquals(response.getHeader("Content-Type"), "application/json", "content type is correct");
+        System.out.println("status line =>" + response.getStatusLine());
+        System.out.println("time=>" + response.getTime());
     }
-  /*  @Test(dataProvider = "readDataFromCsv", dataProviderClass = DataProviderSource.class)
-    public void POSTRequestForUserPetstoreWithDataProviderFromCsv(Iterator<Object[]> iterator){
-        RestAssured.baseURI = "https://petstore.swagger.io/v2";
-        RequestSpecification httpRequest = RestAssured.given();
-        User user
-        while iterator.hasNext(){
-        User user = new User(iterator.);}
 
-        httpRequest.body(user);
-        httpRequest.header("Content-type","application/json");
-        Response response = httpRequest.request(Method.POST,"/user");
+    /*  @Test(dataProvider = "readDataFromCsv", dataProviderClass = DataProviderSource.class)
+      public void POSTRequestForUserPetstoreWithDataProviderFromCsv(Iterator<Object[]> iterator){
+          RestAssured.baseURI = "https://petstore.swagger.io/v2";
+          RequestSpecification httpRequest = RestAssured.given();
+          User user
+          while iterator.hasNext(){
+          User user = new User(iterator.);}
 
-        int responseStatusCode = response.getStatusCode();
-        Assert.assertEquals(responseStatusCode,200,"User was created");
-        System.out.println("content-type=>"+response.getContentType());
-        Assert.assertEquals(response.getContentType(),"application/json","content type is application/json");
-        System.out.println("headers =>"+response.getHeaders());
-        Assert.assertEquals(response.getHeader("Server"),"Jetty(9.2.9.v20150224)","server is jetty");
-        Assert.assertEquals(response.getHeader("Content-Type"),"application/json","content type is correct");
-        System.out.println("status line =>"+response.getStatusLine());
-        System.out.println("time=>"+response.getTime());
-    }*/
+          httpRequest.body(user);
+          httpRequest.header("Content-type","application/json");
+          Response response = httpRequest.request(Method.POST,"/user");
+
+          int responseStatusCode = response.getStatusCode();
+          Assert.assertEquals(responseStatusCode,200,"User was created");
+          System.out.println("content-type=>"+response.getContentType());
+          Assert.assertEquals(response.getContentType(),"application/json","content type is application/json");
+          System.out.println("headers =>"+response.getHeaders());
+          Assert.assertEquals(response.getHeader("Server"),"Jetty(9.2.9.v20150224)","server is jetty");
+          Assert.assertEquals(response.getHeader("Content-Type"),"application/json","content type is correct");
+          System.out.println("status line =>"+response.getStatusLine());
+          System.out.println("time=>"+response.getTime());
+      }*/
 /*
 
     @Test
@@ -307,8 +309,8 @@ public class MyTests {
         System.out.println("Response body: " + response.body().asString());
     }
 */
-    @Test(dataProvider = "createListOfUsers",dataProviderClass = DataProviderSource.class)
-    public void POSTListOfUsersPetstore(Object[] userAyyalList){
+    @Test(dataProvider = "createListOfUsers", dataProviderClass = DataProviderSource.class)
+    public void POSTListOfUsersPetstore(Object[] userAyyalList) {
         RestAssured.baseURI = "https://petstore.swagger.io/v2";
         RequestSpecification httpRequest = RestAssured.given();
         httpRequest.header("Content-Type", "application/json");
@@ -321,14 +323,13 @@ public class MyTests {
             String jsonString = ow.writeValueAsString(userAyyalList);
 
 
-
-        httpRequest.body(jsonString);
-        Response response = httpRequest.request(Method.POST,"/user/createWithList");
+            httpRequest.body(jsonString);
+            Response response = httpRequest.request(Method.POST, "/user/createWithList");
             System.out.println(response.getStatusLine());
             System.out.println(response.getHeaders());
 
-        Assert.assertEquals(response.getStatusCode(), 200,"Status Code is 200");
-        Assert.assertEquals(response.getHeader("Content-Type"), "application/json", "Content type is json");
+            Assert.assertEquals(response.getStatusCode(), 200, "Status Code is 200");
+            Assert.assertEquals(response.getHeader("Content-Type"), "application/json", "Content type is json");
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -344,7 +345,7 @@ public class MyTests {
 // JSONObject is a class that represents a Simple JSON.
 // We can add Key - Value pairs using the put method
         JSONObject requestParam = new JSONObject();
-        requestParam.put("message","new acc provider");
+        requestParam.put("message", "new acc provider");
         requestParam.put("stage", "skill");
 
 
@@ -360,7 +361,7 @@ public class MyTests {
 //****1*****StatusCode
         int responseCode = response.getStatusCode();
         System.out.println("StatusCode is => " + responseCode);
-      //  Assert.assertEquals(responseCode, 200, "Status code is correct");
+        //  Assert.assertEquals(responseCode, 200, "Status code is correct");
         System.out.println("Response body: " + response.body().asString());
         // String successCode = response.jsonPath().get("SuccessCode");
         // Assert.assertEquals("Correct Success code was returned", successCode, "OPERATION_SUCCESS");

@@ -4,16 +4,16 @@ import java.util.Arrays;
 
 public class ClientController {
 
-    public static boolean checkEmployeeParameters(Employee employee){
+    public static boolean checkEmployeeParameters(Employee employee) {
         boolean response = false;
-        if (employee.getEmpNo().equals("E01")){
-            if(employee.getEmpName().toLowerCase().equals("ira")){
-                if (employee.getPosition().toLowerCase().equals("qa")){
+        if (employee.getEmpNo().equals("E01")) {
+            if (employee.getEmpName().toLowerCase().equals("ira")) {
+                if (employee.getPosition().toLowerCase().equals("qa")) {
                     response = true;
                 }
             }
         }
-       return  response;
+        return response;
     }
 
    /* static final String URL_EMPLOYEES = "http://localhost:8080/employees";
