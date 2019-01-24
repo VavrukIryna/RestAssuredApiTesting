@@ -1,36 +1,49 @@
 package RESTAssuredClient;
 
-import RESTAssuredClient.RESTAssuredClient.DataProviderSource;
+/*import RESTAssuredClient.RESTAssuredClient.DataProviderSource;
 import RESTAssuredClient.RESTAssuredClient.Employee;
 import RESTAssuredClient.RESTAssuredClient.ClientController;
+import RESTAssuredClient.RESTAssuredClient.User;*/
+
+import RESTAssuredClient.RESTAssuredClient.ClientController;
+import RESTAssuredClient.RESTAssuredClient.DataProviderSource;
+import RESTAssuredClient.RESTAssuredClient.Employee;
 import RESTAssuredClient.RESTAssuredClient.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.gson.Gson;
+import io.qameta.allure.*;
 import io.restassured.RestAssured;
 import io.restassured.http.Method;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.restassured.response.ResponseBody;
 import io.restassured.specification.RequestSpecification;
+import junit.framework.TestListener;
 import org.apache.log4j.PropertyConfigurator;
 import org.json.simple.JSONObject;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
+/*import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+*/
+import java.io.IOException;
+import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
-
+@Listeners({MyTestListener.class})
+@Epic("My Tests")
+@Feature("Test Test")
 public class MyTests {
     // private static final java.util.logging.Logger LOGGER = Logger.getLogger( App.class.getName() );
     static final String URL_EMPLOYEES = "http://localhost:8080/employees";
@@ -38,7 +51,13 @@ public class MyTests {
     static final String URL_UPDATE_EMPLOYEE = "http://localhost:8080/employee";
     static final String URL_EMPLOYEE_PREFIX = "http://localhost:8080/employee";
 
-    @Test(dataProvider = "getAllEmployeeNumber", dataProviderClass = DataProviderSource.class)
+
+
+
+    @Test(dataProvider = "getAllEmployeeNumber", dataProviderClass = DataProviderSource.class, description = "Check Correct Employee Details")
+    @Severity(SeverityLevel.BLOCKER)
+    @Description("Test description: check employee test")
+    @Story("correct name of employee")
     public void CheckCorrectEmployeeDetails(String empNo) {
         //PropertiesConfigurator is used to configure logger from properties file
         // PropertyConfigurator.configure("log4j.properties");

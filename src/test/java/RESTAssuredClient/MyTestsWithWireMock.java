@@ -1,5 +1,7 @@
 package RESTAssuredClient;
 
+import RESTAssuredClient.RESTAssuredClient.DataProviderSource;
+import RESTAssuredClient.RESTAssuredClient.User;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import io.restassured.RestAssured;
 import io.restassured.http.Method;
@@ -15,6 +17,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 public class MyTestsWithWireMock {
     WireMockServer wireMockServer;
 
+
+    public final String URLForMocking = "http://localhost:8080";
     @BeforeTest
     public void setUp() {
         wireMockServer = new WireMockServer();
@@ -35,7 +39,7 @@ public class MyTestsWithWireMock {
         wireMockServer.stubFor(get(urlPathEqualTo("/pet/1")).willReturn(aResponse().withBody("TEST MOCK BODY")));
         //дії як в звичайного користувача
         //   RestAssured.baseURI = "https://petstore.swagger.io/v2";
-        RestAssured.baseURI = "http://localhost:8080";
+        RestAssured.baseURI = URLForMocking;
         RequestSpecification httpRequest = RestAssured.given();
         Response response = httpRequest.get("/pet/1");
         String responseBody = response.getBody().asString();
@@ -51,7 +55,7 @@ public class MyTestsWithWireMock {
         //ініціалізація сервера мок сервера
 
         wireMockServer.stubFor(get(urlPathEqualTo("/pet/1")).willReturn(aResponse().withStatus(200).withBody("\"testing-library\": \"WireMock\"").withHeader("Content-Type", "application/json")));
-        RestAssured.baseURI = "http://localhost:8080";
+        RestAssured.baseURI = URLForMocking;
         RequestSpecification httpRequest = RestAssured.given();
         Response response = httpRequest.get("/pet/1");
 
@@ -59,7 +63,7 @@ public class MyTestsWithWireMock {
         verify(getRequestedFor(urlEqualTo("/pet/1")));
         //  Assert.assertEquals(response.getStatusCode(),200);
         Assert.assertEquals("application/json", response.getHeader("Content-Type"));
-        String responseBody = response.getBody().asString();
+        String responseBody ;
         if (response.getBody() != null) {
             responseBody = response.getBody().asString();
             System.out.println("Response Body is =>  " + responseBody);
@@ -80,11 +84,11 @@ public class MyTestsWithWireMock {
                         .withBody("!!! Service Unavailable !!!")));
 
 
-        RestAssured.baseURI = "http://localhost:8080";
+        RestAssured.baseURI = URLForMocking;
         RequestSpecification httpRequest = RestAssured.given();
         Response response = httpRequest.get("/pet/1");
 
-        String responseBody = response.getBody().asString();
+        String responseBody ;
         if (response.getBody() != null) {
             responseBody = response.getBody().asString();
             System.out.println("Response Body is =>  " + responseBody);
@@ -100,27 +104,28 @@ public class MyTestsWithWireMock {
 
     @Test
     public void bodyMatchingPOST() {
-        wireMockServer.stubFor(post(urlEqualTo("/pet/10"))
+       stubFor(post(urlEqualTo("/pet"))
                 .withHeader("Content-Type", equalTo("application/json"))
-                .withRequestBody(containing("\"testing-library\": \"WireMock\""))
-                .withRequestBody(containing("\"creator\": \"Tom Akehurst\""))
-                .withRequestBody(containing("\"website\": \"wiremock.org\""))
+                .withRequestBody(containing("\"petId\": \"WireMock\""))
+                .withRequestBody(containing("\"name\": \"Tom Akehurst\""))
+                .withRequestBody(containing("\"status\": \"wiremock.org\""))
                 .willReturn(aResponse()
                         .withStatus(200).withHeader("Content-Type", "application/json")));
-        RestAssured.baseURI = "http://localhost:8080";
+
+        RestAssured.baseURI = URLForMocking;
         RequestSpecification httpRequest = RestAssured.given();
 
 
         JSONObject requestParam = new JSONObject();
-        requestParam.put("testing-library", "WireMock");
-        requestParam.put("creator", "Tom Akehurst");
-        requestParam.put("website", "wiremock.org");
+        requestParam.put("petId", "WireMock");
+        requestParam.put("name", "Tom Akehurst");
+        requestParam.put("status", "wiremock.org");
 
         // Add the Json to the body of the request
         httpRequest.body(requestParam.toJSONString());
-        System.out.println(httpRequest.body(requestParam.toJSONString()));
-        Response response = httpRequest.post("/pet/10");
-
+        httpRequest.header("Content-Type", "application/json");
+        System.out.println(requestParam.toJSONString());
+        Response response = httpRequest.request(Method.POST, "/pet");
 
         System.out.println(response.getStatusCode());
      /*   verify(postRequestedFor(urlEqualTo("/pet/10"))
@@ -128,5 +133,38 @@ public class MyTestsWithWireMock {
         /*  Assert.assertEquals(200, response.getStatusCode());
          */
 
+    }
+
+    @Test(dataProvider = "createUser", dataProviderClass = DataProviderSource.class)
+    public void POSTRequestForUserPetstoreWithDataProvider() {
+      //  RestAssured.baseURI = "https://petstore.swagger.io/v2";
+        User user = new User(5, "username", "firstname", "lastname", "email", "password", "phone", 123);
+        stubFor(post(urlEqualTo("/user"))
+                .withHeader("Content-Type", equalTo("application/json"))
+                .withRequestBody(containing("\"petId\": \"WireMock\""))
+                .withRequestBody(containing("\"name\": \"Tom Akehurst\""))
+                .withRequestBody(containing("\"status\": \"wiremock.org\""))
+                .willReturn(aResponse()
+                        .withStatus(200).withHeader("Content-Type", "application/json")));
+
+
+
+
+        RestAssured.baseURI = URLForMocking;
+        RequestSpecification httpRequest = RestAssured.given();
+      //  User user = new User(5, "username", "firstname", "lastname", "email", "password", "phone", 123);
+        httpRequest.body(user);
+        httpRequest.header("Content-type", "application/json");
+        Response response = httpRequest.request(Method.POST, "/user");
+
+        int responseStatusCode = response.getStatusCode();
+        Assert.assertEquals(responseStatusCode, 200, "User was created");
+        System.out.println("content-type=>" + response.getContentType());
+        Assert.assertEquals(response.getContentType(), "application/json", "content type is application/json");
+        System.out.println("headers =>" + response.getHeaders());
+        Assert.assertEquals(response.getHeader("Server"), "Jetty(9.2.9.v20150224)", "server is jetty");
+        Assert.assertEquals(response.getHeader("Content-Type"), "application/json", "content type is correct");
+        System.out.println("status line =>" + response.getStatusLine());
+        System.out.println("time=>" + response.getTime());
     }
 }

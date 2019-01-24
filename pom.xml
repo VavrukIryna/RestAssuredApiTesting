@@ -16,9 +16,10 @@
     <name>RESTAssuredClient</name>
 
     <properties>
-        <java.version>1.7</java.version>
+        <java.version>1.8</java.version>
         <skipTests>true</skipTests>
-
+        <aspectj.version>1.8.10</aspectj.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!--      <log.level>DEBUG</log.level>
              <log.path>/data/logs</log.path>-->
          </properties>
@@ -101,11 +102,50 @@
                  <version>1.1.1</version>
              </dependency>
              <!-- https://mvnrepository.com/artifact/io.qameta.allure/allure-testng -->
+
+
+
+
+
              <dependency>
                  <groupId>io.qameta.allure</groupId>
                  <artifactId>allure-testng</artifactId>
                  <version>2.8.1</version>
              </dependency>
+             <dependency>
+                 <groupId>javax.xml.bind</groupId>
+                 <artifactId>jaxb-api</artifactId>
+                 <version>2.3.0</version>
+             </dependency>
+             <dependency>
+                 <groupId>com.sun.xml.bind</groupId>
+                 <artifactId>jaxb-impl</artifactId>
+                 <version>2.3.0</version>
+             </dependency>
+             <dependency>
+                 <groupId>org.glassfish.jaxb</groupId>
+                 <artifactId>jaxb-runtime</artifactId>
+                 <version>2.3.0</version>
+             </dependency>
+             <dependency>
+                 <groupId>javax.activation</groupId>
+                 <artifactId>activation</artifactId>
+                 <version>1.1.1</version>
+             </dependency>
+             <!-- https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-core -->
+             <dependency>
+                 <groupId>com.sun.xml.bind</groupId>
+                 <artifactId>jaxb-core</artifactId>
+                 <version>2.3.0.1</version>
+             </dependency>
+
+
+
+
+
+
+
+
              <dependency>
                  <groupId>org.testng</groupId>
                  <artifactId>testng</artifactId>
@@ -117,7 +157,11 @@
                  <version>1.58</version>
                  <scope>test</scope>
              </dependency>
-
+             <dependency>
+                 <groupId>io.qameta.allure</groupId>
+                 <artifactId>allure-testng</artifactId>
+                 <version>2.0-BETA19</version>
+             </dependency>
          </dependencies>
 
     <build>
@@ -126,7 +170,51 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
             </plugin>
+
+
+
+
+
+
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.20</version>
+                <configuration>
+                  <!--  <suiteXmlFiles>
+                        <suiteXmlFile>TestNG.xml</suiteXmlFile>
+                    </suiteXmlFiles> -->
+                    <argLine>
+                        -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
+
+                    </argLine>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.aspectj</groupId>
+                        <artifactId>aspectjweaver</artifactId>
+                        <version>${aspectj.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+
+
+
+
+
+
+
+
+        <!--    <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.20</version>
@@ -142,11 +230,11 @@
                             <value>ru.yandex.qatools.allure.testng.AllureRunListener</value>
                         </property>
                     </properties>
-                 <!--   <suiteXmlFiles>
+                   <suiteXmlFiles>
                         <suiteXmlFile>../testng.xml</suiteXmlFile>
-                    </suiteXmlFiles> -->
+                    </suiteXmlFiles>
                 </configuration>
-            </plugin>
+            </plugin> -->
         </plugins>
     </build>
 
