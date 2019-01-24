@@ -14,7 +14,7 @@ import org.testng.annotations.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 
-public class MyTestsWithWireMock {
+public class MyWireMockTests {
     WireMockServer wireMockServer;
 
 
