@@ -1,30 +1,58 @@
 package RESTAssuredClient;
 
-import RESTAssuredClient.RESTAssuredClient.AzureAuthorization;
-import RESTAssuredClient.RESTAssuredClient.ClientController;
-import RESTAssuredClient.RESTAssuredClient.Employee;
+import RESTAssuredClient.RESTAssuredClient.*;
+import com.amazonaws.services.simpleworkflow.flow.annotations.Activities;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.microsoft.bot.schema.models.Activity;
+import com.sun.jmx.snmp.Timestamp;
 import io.restassured.RestAssured;
 import io.restassured.http.Method;
 import io.restassured.response.Response;
 import io.restassured.response.ResponseBody;
 import io.restassured.specification.RequestSpecification;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.junit.Test;
 import org.testng.Assert;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+
+import static RESTAssuredClient.RESTAssuredClient.ClientController.*;
+import static RESTAssuredClient.RESTAssuredClient.CreateDummyObjectActivity.createActivityObj;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 
 public class AzureTests {
-AzureAuthorization azureAuthorization;
+    private static final Logger LOG = Logger.getLogger(AzureTests.class);
+    AzureAuthorization azureAuthorization;
     String simpleActivity = "{ \"type\": \"message\"," +
-            "  \"from\": { \"id\": \"test_user_id\" } },"+
+            "  \"from\": { \"id\": \"test_user_id\" } }," +
             "  \"text\": \"Hi\"," +
             "  \"inputHint\": \"expectingInput\"," +
             "  \"channelId\": \"test_channel\"," +
             "  \"conversation\": { \"id\": 3 }," +
             "  \"recipient\": { \"id\": \"test_user_02\" } }";
+
+    private WebsocketClientEndpoint clientEndpoint = null;
+
     /*   @Test
        public void firstTest() throws URISyntaxException {
 
@@ -39,118 +67,184 @@ AzureAuthorization azureAuthorization;
        }
 
        */
+
+
+
     @Test
-    public void createConnection() {
+    public void createConnectionViaWebSockets() throws IOException, InterruptedException, URISyntaxException {
 
-        System.out.println("___________________START TESTING!!!________________________");
-        RestAssured.baseURI = "https://directline.botframework.com/v3/directline/conversations";
-        RequestSpecification httpRequest = RestAssured.given();
-        httpRequest.header("Authorization", "Bearer MLEqhmOXPXk.1uPoTuUlr34mMovP4pgV6jroqxo67TsDo6VMqYVlU4s");
-     /*httpRequest.body(user);
-     httpRequest.header("Content-type", "application/json");*/
-        Response response = httpRequest.request(Method.POST);
+        String log4jConfPath = "\\src\\test\\resources\\log4j.properties";
+        PropertyConfigurator.configure(log4jConfPath);
 
-        int responseStatusCode = response.getStatusCode();
-        System.out.println("response Status Code: " + response.getStatusCode());
-        System.out.println("status line =>" + response.getStatusLine());
-        System.out.println("response body=>" + response.getBody().prettyPrint());
-        /* System.out.println("time=>" + response.getTime());*/
+        //Given
+        LOG.info("create connection to bot");
+        String secret = "MLEqhmOXPXk.1uPoTuUlr34mMovP4pgV6jroqxo67TsDo6VMqYVlU4s";
+        String UrlStartConversation = "https://directline.botframework.com/v3/directline/conversations";
+        Response response = createConnectionForBot(secret, UrlStartConversation);
+       // System.out.println("response is=> "+response.prettyPrint());
 
+
+        //Then
+        //Assert Response
+        int actualResponseStatusCode = response.getStatusCode();
+        String actualStatusLine = response.getStatusLine();
+        int expectedResponseStatusCode = 201;
+        String expectedResponseStatusLine = "HTTP/1.1 201 Created";
+        assertEquals(actualResponseStatusCode, expectedResponseStatusCode);
+        assertEquals(actualStatusLine, expectedResponseStatusLine);
+
+        System.out.println("response body =>" + response.getBody().prettyPrint());
         String jsonAsString = response.getBody().asString();
-        System.out.println("jsonAsString=>"+jsonAsString);
+        AzureAuthorization azureAuthorization = StringToObjAzureAuthorization(jsonAsString);
 
-        ObjectMapper m = new ObjectMapper();
-        try {
-            AzureAuthorization azureAuthorization = m.readValue(jsonAsString, AzureAuthorization.class);
-            System.out.println(azureAuthorization.toString());
-            System.out.println("conversationId=>" + azureAuthorization.getConversationId());
+        System.out.println("conversationId=>" + azureAuthorization.getConversationId());
 
-            //sendAction To Bot
-
-            System.out.println("_____________________SEND ACTION TO BOT!!!___________________");
-            String newClientUrl = "https://directline.botframework.com/v3/directline/conversations/" + azureAuthorization.getConversationId() + "/activities";
-            System.out.println("newUrl=>" + newClientUrl);
-            RestAssured.baseURI = newClientUrl;
-            RequestSpecification httpRequestClient = RestAssured.given();
-            httpRequestClient.header("Authorization", "Bearer MLEqhmOXPXk.1uPoTuUlr34mMovP4pgV6jroqxo67TsDo6VMqYVlU4s");
-            httpRequestClient.header("Content-type", "application/json");
-            httpRequestClient.body(simpleActivity);
-            System.out.println("Simple activity"+simpleActivity);
-            Response responseClient = httpRequestClient.request(Method.POST);
-            System.out.println("response Client Body is =>"+responseClient.getBody().prettyPrint());
-            System.out.println("response client Direct line is =>"+responseClient.getStatusLine());
-
-
-            //receive Actions from Bot
-            System.out.println("__________________________RECEIVE ACTION FROM BOT_____________________");
-            String newBotUrl = "https://directline.botframework.com/v3/directline/conversations/" + azureAuthorization.getConversationId() + "/activities";
-            RestAssured.baseURI =newBotUrl ;
-            RequestSpecification httpRequestBot = RestAssured.given();
-            httpRequestBot.header("Authorization", "Bearer MLEqhmOXPXk.1uPoTuUlr34mMovP4pgV6jroqxo67TsDo6VMqYVlU4s");
-            Response responseBot = httpRequestBot.request(Method.GET);
-            System.out.println("response Client Body is =>"+responseBot.getBody().prettyPrint());
-            System.out.println("response client Direct line is =>"+responseBot.getStatusLine());
-
-
-            System.out.println("_____________________SEND ACTION TO BOT!!!___________________");
-            newClientUrl = "https://directline.botframework.com/v3/directline/conversations/" + azureAuthorization.getConversationId() + "/activities";
-            System.out.println("newUrl=>" + newClientUrl);
-            RestAssured.baseURI = newClientUrl;
-            RequestSpecification httpRequestClient1 = RestAssured.given();
-            httpRequestClient1.header("Authorization", "Bearer MLEqhmOXPXk.1uPoTuUlr34mMovP4pgV6jroqxo67TsDo6VMqYVlU4s");
-            httpRequestClient1.header("Content-type", "application/json");
-            String simpleActivity2 = "{ \"type\": \"message\"," +
-                    "  \"from\": { \"id\": \"test_user_id\" } },"+
-                    "  \"text\": \"HELLO NEW MESSAGE\"," +
-                    "  \"inputHint\": \"expectingInput\"," +
-                    "  \"channelId\": \"test_channel\"," +
-                    "  \"conversation\": { \"id\": 3 }," +
-                    "  \"recipient\": { \"id\": \"test_user_02\" } }";
-            httpRequestClient1.body(simpleActivity2);
-            System.out.println("Simple activity"+simpleActivity2);
-            Response responseClient1 = httpRequestClient1.request(Method.POST);
-            System.out.println("response Client Body is =>"+responseClient1.getBody().prettyPrint());
-            System.out.println("response client Direct line is =>"+responseClient1.getStatusLine());
-
-
-            //receive Actions from Bot
-            System.out.println("__________________________RECEIVE ACTION FROM BOT_____________________");
-            newBotUrl = "https://directline.botframework.com/v3/directline/conversations/" + azureAuthorization.getConversationId() + "/activities";
-            RestAssured.baseURI =newBotUrl ;
-            RequestSpecification httpRequestBot1 = RestAssured.given();
-            httpRequestBot1.header("Authorization", "Bearer MLEqhmOXPXk.1uPoTuUlr34mMovP4pgV6jroqxo67TsDo6VMqYVlU4s");
-            Response responseBot1 = httpRequestBot1.request(Method.GET);
-            System.out.println("response Client Body is =>"+responseBot1.getBody().prettyPrint());
-            System.out.println("response client Direct line is =>"+responseBot1.getStatusLine());
+        //streamUrl is used to connect to Bot
+        System.out.println("streamUrl =>"+azureAuthorization.getStreamUrl());
 
 
 
 
 
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
+        //When
+        //sendAction To Bot
+        String message = "My first message is - Hello my darling BOT via websockets";
+        Response responseClient = sendActionToBot(azureAuthorization.getConversationId(), secret, message);
 
 
+        //Then check answer
+        int expectedStatusCode = 200;
+        int actualStatusCode = responseClient.getStatusCode();
+        assertEquals(actualStatusCode, expectedStatusCode);
+        String actualId = responseClient.getBody().asString();
+        assertTrue(actualId.contains(azureAuthorization.getConversationId()));
+        System.out.println("response body Client=>" + responseClient.getBody().prettyPrint());
 
+
+        //When Ask for receiving action from bot
+
+        System.out.println("__________________________RECEIVE ACTION FROM BOT VIA WEBSOCKETS_____________________");
+
+        String newBotWebSocketUrl =azureAuthorization.getStreamUrl();
+        System.out.println("newBotWebSocketUrl"+newBotWebSocketUrl);
+
+        clientEndpoint = new WebsocketClientEndpoint(new URI(newBotWebSocketUrl));
+        // add listener
+        clientEndpoint.addMessageHandler(new WebsocketClientEndpoint.MessageHandler() {
+            public void handleMessage(String message) throws IOException {
+                Activity activity = StringToObjActivity(message);
+                System.out.println("SERVER MESSAGE IS:" + activity.text() + " =>user number is: ");
+            }
+        });
+
+        // wait 10 seconds for messages from websocket
+
+        String newBotWebSocketUrlREST ="http"+ azureAuthorization.getStreamUrl().substring(2);
+        RestAssured.baseURI =  newBotWebSocketUrlREST;
+        RequestSpecification httpRequestBot = RestAssured.given();
+        httpRequestBot.header("Upgrade", "websocket");
+        httpRequestBot.header("Connection", "upgrade");
+        Response responseBot = httpRequestBot.request(Method.GET);
+        System.out.println("response Client Body is =>" + responseBot.getBody().prettyPrint());
+        System.out.println("response client Direct line is =>" + responseBot.getStatusLine());
+
+        Thread.sleep(10000000);
+      //  clientEndpoint.sendMessage("message");
+       // Thread.sleep(10000000);
+
+
+    /*    String newBotWebSocketUrl ="http"+ azureAuthorization.getStreamUrl().substring(2);
+
+        //   String newBotWebSocketUrl =azureAuthorization.getStreamUrl().substring(33);
+
+        RestAssured.baseURI = newBotWebSocketUrl;
+        RequestSpecification httpRequestBot = RestAssured.given();
+        httpRequestBot.header("Upgrade", "websocket");
+        httpRequestBot.header("Connection", "Upgrade");
+        Response responseBot = httpRequestBot.request(Method.GET);
+        System.out.println("response Client Body is =>" + responseBot.getBody().prettyPrint());
+        System.out.println("response client Direct line is =>" + responseBot.getStatusLine());*/
+
+
+
+
+
+
+       /* System.out.println("new websocket URL=>"+ newBotWebSocketUrl);
+     //   RestAssured.baseURI = newBotWebSocketUrl;
+        clientEndpoint = new WebsocketClientEndpoint(new URI(newBotWebSocketUrl));
+        // add listener
+        clientEndpoint.addMessageHandler(new WebsocketClientEndpoint.MessageHandler() {
+            public void handleMessage(String message) throws IOException {
+                Activity activity = StringToObjActivity(message);
+                System.out.println("SERVER MESSAGE IS:" + activity.text() + " =>user number is: ");
+              }
+        });
+
+        // wait 10 seconds for messages from websocket
+        clientEndpoint.sendMessage("message");
+        Thread.sleep(10000);*/
     }
 
+    @Test
+    public void createConnection() throws IOException, ParseException {
 
-   /* @Test
-    public void sendActionToBot(){
-        //send message to bot
-        String newUrl = "https://directline.botframework.com/v3/directline/conversations/" + azureAuthorization.getConversationId() + "/activities";
-        System.out.println("newUrl=>" + newUrl);
-        RestAssured.baseURI = newUrl;
-        RequestSpecification httpRequestClient = RestAssured.given();
-        httpRequestClient.header("Content-type", "application/json");
-        httpRequestClient.body(simpleActivity);
-        Response responseClient = httpRequestClient.request(Method.POST);
-        System.out.println("response Client Body is =>"+responseClient.getBody().prettyPrint());
-        System.out.println("response client Direct line is =>"+responseClient.getStatusLine());
-    }*/
+        String log4jConfPath = "C:\\Users\\Iryna_Vavruk\\JAVAPROJECTS\\RESTAssuredClient\\RestAssuredApiTesting\\src\\test\\resources\\log4j.properties";
+        PropertyConfigurator.configure(log4jConfPath);
 
-}
+
+
+        //Given
+        String secret = "MLEqhmOXPXk.1uPoTuUlr34mMovP4pgV6jroqxo67TsDo6VMqYVlU4s";
+        String UrlStartConversation = "https://directline.botframework.com/v3/directline/conversations";
+        Response response = createConnectionForBot(secret, UrlStartConversation);
+
+        //Then
+        //Assert Response
+        int actualResponseStatusCode = response.getStatusCode();
+        String actualStatusLine = response.getStatusLine();
+        int expectedResponseStatusCode = 201;
+        String expectedResponseStatusLine = "HTTP/1.1 201 Created";
+        assertEquals(actualResponseStatusCode, expectedResponseStatusCode);
+        assertEquals(actualStatusLine, expectedResponseStatusLine);
+
+        System.out.println("response body =>" + response.getBody().prettyPrint());
+        String jsonAsString = response.getBody().asString();
+        AzureAuthorization azureAuthorization = StringToObjAzureAuthorization(jsonAsString);
+
+        System.out.println("conversationId=>" + azureAuthorization.getConversationId());
+
+        //When
+        //sendAction To Bot
+        String message = "test";
+        Response responseClient = sendActionToBot(azureAuthorization.getConversationId(), secret, message);
+
+
+        //Then check answer
+        int expectedStatusCode = 200;
+        int actualStatusCode = responseClient.getStatusCode();
+        assertEquals(actualStatusCode, expectedStatusCode);
+        String actualId = responseClient.getBody().asString();
+        assertTrue(actualId.contains(azureAuthorization.getConversationId()));
+
+        //When Ask for receiving action from bot
+        Response responseBot = receiveActionFromBot(azureAuthorization.getConversationId(),secret);
+        System.out.println("response Client Body is =>" + responseBot.getBody().prettyPrint());
+        System.out.println("response client Direct line is =>" + responseBot.getStatusLine());
+        //then check answers
+
+        String myActivitiesString =  responseBot.getBody().asString();
+        System.out.println("String Activities=>\n"+myActivitiesString);
+        ObjectMapper mapper = new ObjectMapper()
+                .registerModule(new JodaModule());
+
+        ResponseParserActivities activities =  mapper.readValue(myActivitiesString, ResponseParserActivities.class);
+
+        Activity activity = activities.getActivities().get(Integer.parseInt(activities.getWatermark()));
+        String actualOutput = "Turn 1: You sent 'test'" +
+                "\n";
+        System.out.println(activity.text());
+        assertEquals(actualOutput, activity.text());
+        }
+    }
+

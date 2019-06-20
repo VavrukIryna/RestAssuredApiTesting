@@ -1,5 +1,8 @@
 package RESTAssuredClient.RESTAssuredClient;
 
+import org.joda.time.DateTime;
+
+import java.sql.Timestamp;
 import java.util.Objects;
 
 public class Employee {
@@ -7,15 +10,27 @@ public class Employee {
     private String empNo;
     private String empName;
     private String position;
+    private DateTime timestamp;
+
+    public DateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(DateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
+
 
     public Employee() {
 
     }
 
-    public Employee(String empNo, String empName, String position) {
+    public Employee(String empNo, String empName, String position, DateTime timestamp) {
         this.empNo = empNo;
         this.empName = empName;
         this.position = position;
+        this.timestamp = timestamp;
     }
 
     public String getEmpNo() {
@@ -51,18 +66,4 @@ public class Employee {
                 '}';
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Employee employee = (Employee) o;
-        return Objects.equals(empNo, employee.empNo) &&
-                Objects.equals(empName, employee.empName) &&
-                Objects.equals(position, employee.position);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(empNo, empName, position);
-    }
 }

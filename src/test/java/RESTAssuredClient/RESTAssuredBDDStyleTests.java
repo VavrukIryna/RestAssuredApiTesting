@@ -34,7 +34,7 @@ public class RESTAssuredBDDStyleTests {
                 .when()
                 .get("https://petstore.swagger.io/v2/user/{username}")
                 .then()
-                .statusCode(404)
+                .statusCode(400)
                 .body("message",equalTo("User not found"))
                 .body("type",equalTo("error"));
     }

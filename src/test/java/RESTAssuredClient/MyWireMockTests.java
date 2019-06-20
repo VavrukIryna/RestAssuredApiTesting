@@ -38,7 +38,7 @@ public class MyWireMockTests {
         //ініціалізація сервера мок сервера
         wireMockServer.stubFor(get(urlPathEqualTo("/pet/1")).willReturn(aResponse().withBody("TEST MOCK BODY")));
         //дії як в звичайного користувача
-        //   RestAssured.baseURI = "https://petstore.swagger.io/v2";
+
         RestAssured.baseURI = URLForMocking;
         RequestSpecification httpRequest = RestAssured.given();
         Response response = httpRequest.get("/pet/1");
