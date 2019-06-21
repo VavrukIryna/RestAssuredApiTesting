@@ -95,7 +95,7 @@ public class MyWireMockTests {
         }
 
 
-        verify(getRequestedFor(urlEqualTo("/pet/1")));
+   //     verify(getRequestedFor(urlEqualTo("/pet/1")));
         Assert.assertEquals(response.getStatusCode(), 503);
         Assert.assertEquals(response.getHeader("Content-Type"), "text/html");
         Assert.assertEquals(response.getBody().asString(), "!!! Service Unavailable !!!");
