@@ -104,6 +104,7 @@ public class MyWireMockTests {
 
     @Test
     public void bodyMatchingPOST() {
+        //test smth
        stubFor(post(urlEqualTo("/pet"))
                 .withHeader("Content-Type", equalTo("application/json"))
                 .withRequestBody(containing("\"petId\": \"WireMock\""))
