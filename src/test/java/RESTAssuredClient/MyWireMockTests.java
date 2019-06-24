@@ -114,8 +114,8 @@ public class MyWireMockTests {
 
         RestAssured.baseURI = URLForMocking;
         RequestSpecification httpRequest = RestAssured.given();
-//test git log
-//test git ammend
+
+
         JSONObject requestParam = new JSONObject();
         requestParam.put("petId", "WireMock");
         requestParam.put("name", "Tom Akehurst");
