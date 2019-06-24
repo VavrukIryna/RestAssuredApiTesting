@@ -104,7 +104,6 @@ public class MyWireMockTests {
 
     @Test
     public void bodyMatchingPOST() {
-        //test smth
        stubFor(post(urlEqualTo("/pet"))
                 .withHeader("Content-Type", equalTo("application/json"))
                 .withRequestBody(containing("\"petId\": \"WireMock\""))
@@ -115,8 +114,8 @@ public class MyWireMockTests {
 
         RestAssured.baseURI = URLForMocking;
         RequestSpecification httpRequest = RestAssured.given();
-
-
+//test git log
+//test git ammend
         JSONObject requestParam = new JSONObject();
         requestParam.put("petId", "WireMock");
         requestParam.put("name", "Tom Akehurst");
