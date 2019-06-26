@@ -67,15 +67,9 @@ public class AzureTests {
            System.out.println("received message:"+clientEndPoint.onMessage(sendedMessage));
            String answer = clientEndPoint.onMessage(sendedMessage);
            Assert.assertEquals("My new message" ,answer);
-
        }
 
-       */
-
-    //try to branch hotfix
-    
-
-
+ */
 
     @Test
     public void createConnectionViaWebSockets() throws IOException, InterruptedException, URISyntaxException {
