@@ -40,6 +40,10 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 
+
+
+//try to resize a conflict
+
 public class AzureTests {
     private static final Logger LOG = Logger.getLogger(AzureTests.class);
     AzureAuthorization azureAuthorization;
@@ -149,41 +153,6 @@ public class AzureTests {
         System.out.println("response client Direct line is =>" + responseBot.getStatusLine());
 
         Thread.sleep(10000000);
-      //  clientEndpoint.sendMessage("message");
-       // Thread.sleep(10000000);
-
-
-    /*    String newBotWebSocketUrl ="http"+ azureAuthorization.getStreamUrl().substring(2);
-
-        //   String newBotWebSocketUrl =azureAuthorization.getStreamUrl().substring(33);
-
-        RestAssured.baseURI = newBotWebSocketUrl;
-        RequestSpecification httpRequestBot = RestAssured.given();
-        httpRequestBot.header("Upgrade", "websocket");
-        httpRequestBot.header("Connection", "Upgrade");
-        Response responseBot = httpRequestBot.request(Method.GET);
-        System.out.println("response Client Body is =>" + responseBot.getBody().prettyPrint());
-        System.out.println("response client Direct line is =>" + responseBot.getStatusLine());*/
-
-
-
-
-
-
-       /* System.out.println("new websocket URL=>"+ newBotWebSocketUrl);
-     //   RestAssured.baseURI = newBotWebSocketUrl;
-        clientEndpoint = new WebsocketClientEndpoint(new URI(newBotWebSocketUrl));
-        // add listener
-        clientEndpoint.addMessageHandler(new WebsocketClientEndpoint.MessageHandler() {
-            public void handleMessage(String message) throws IOException {
-                Activity activity = StringToObjActivity(message);
-                System.out.println("SERVER MESSAGE IS:" + activity.text() + " =>user number is: ");
-              }
-        });
-
-        // wait 10 seconds for messages from websocket
-        clientEndpoint.sendMessage("message");
-        Thread.sleep(10000);*/
     }
 
     @Test
