@@ -41,6 +41,11 @@ import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
+//add smth fron my comp
+//>>dont know what to do
+//try to stash()
+
+
 @Listeners({MyTestListener.class})
 @Epic("My Tests")
 @Feature("Test Test")

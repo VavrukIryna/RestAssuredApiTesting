@@ -16,7 +16,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 
 public class MyWireMockTests {
     WireMockServer wireMockServer;
-
+//add new info here from my local comp
 
     public final String URLForMocking = "http://localhost:8080";
     @BeforeTest
